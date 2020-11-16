@@ -1,9 +1,14 @@
+import logging
 import requests
 from lxml import etree
 
 aja_sru_url = 'https://sru.aja.bs.no/mlnb'
 vb_url = 'https://res.cloudinary.com/forlagshuset/image/upload/q_auto:best/{isbn}'
 destination_path = '//Sindre/OmslagsbilderTilAja/{isbn}.jpg'
+
+# Tip: Set level to logging.DEBUG for more verbose output
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+logger = logging.getLogger()
 
 def get_isbns():
     # Retrieves up to `maximumRecords` isbns for records missing cover in Ája Catmandu
@@ -34,6 +39,7 @@ def get_image_from_vb(isbn):
 def store_image(isbn, content):
     with open(destination_path.format(isbn=isbn), 'wb') as fp:
         fp.write(content)
+    logger.info('Stored image for ISBN: %s', isbn)
 
 for isbn in get_isbns():
     if image := get_image_from_vb(isbn):
