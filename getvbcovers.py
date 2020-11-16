@@ -1,10 +1,16 @@
 import logging
 import requests
+from dotenv import load_dotenv
 from lxml import etree
+import os
+
+load_dotenv()
 
 aja_sru_url = 'https://sru.aja.bs.no/mlnb'
 vb_url = 'https://res.cloudinary.com/forlagshuset/image/upload/q_auto:best/{isbn}'
-destination_path = '//Sindre/OmslagsbilderTilAja/{isbn}.jpg'
+
+destination_path = os.getenv('AJA_DESTINATION_PATH', './')  # Defaults to current folder if AJA_DESTINATION_PATH not set
+destination_filename = '{isbn}.jpg'
 
 # Tip: Set level to logging.DEBUG for more verbose output
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
@@ -35,12 +41,13 @@ def get_image_from_vb(isbn):
         return r.content
     else:
         return None
-        
+
 def store_image(isbn, content):
-    with open(destination_path.format(isbn=isbn), 'wb') as fp:
+    with open(os.path.join(destination_path, destination_filename).format(isbn=isbn), 'wb') as fp:
         fp.write(content)
     logger.info('Stored image for ISBN: %s', isbn)
 
 for isbn in get_isbns():
-    if image := get_image_from_vb(isbn):
+    image = get_image_from_vb(isbn)
+    if image:
         store_image(isbn, image)
